@@ -29,7 +29,7 @@ def extractinfo(detailsfile):
             print(targetname)
         # get on-source time
         try:
-            if (("track" in comp[3]) and ("track" in comp[3]) and (targetname in comp[-1])):
+            if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
                 starttime=time_string_to_decimals(comp[0]) # decimal hrs
                 endtime=time_string_to_decimals(comp[2]) # decimal hrs
                 rawdelta = endtime-starttime
