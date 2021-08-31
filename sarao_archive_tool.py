@@ -5,6 +5,9 @@ for LADUMA/MeerKAT tracks.
 Zack Hutchens
 March 2021
 """
+from astropy.coordinates import EarthLocation
+from astropy.time import Time
+
 def time_string_to_decimals(time_string):
     fields = time_string.split(":")
     hours = fields[0] if len(fields) > 0 else 0.0
@@ -21,12 +24,42 @@ def extractinfo(detailsfile):
 
     # parse file
     onsourcetime = 0.0 # s
+    meerkatloc=EarthLocation(lon=21+19/60+48/3600, lat=-30+49/60+48/3600)
     for i, line in enumerate(f):
         comp = line.split()
         # get target name
+        if line.startswith("Name"):
+            fields=line.split('/')
+            captureBlock = fields[4]
+        if "Experiment ID" in line:
+            scheduleBlock = comp[-1]
+        if "season" in line:
+            season = comp[2]
+
         if "target" in line:
             targetname = comp[1]
-            print(targetname)
+            #print(targetname)
+        if "Observed from" in line:
+            obsdate = comp[2]
+        if "Description: " in line:
+            track = comp[-1][:-1]
+        if "Dump rate" in line:
+            dumprate_Hz = comp[4]
+        if "Size" in line:
+            datasize_GB = comp[-2] 
+        # get target RA/Dec
+        if "target" in line:
+            targetRA=comp[3]
+            targetDec=comp[4]       
+ 
+        # get antenna info
+        if "ants" in line:
+            ants = line[8:-2].split()
+            ants = [int(''.join(filter(str.isdigit, x))) for x in ants]
+            num_ants_used = len(ants)
+            missing = [x for x in range(0,64) if x not in ants]
+            missing_ants = ''.join(['m'+str(x)+'-' for x in missing])[:-1]
+        
         # get on-source time
         try:
             if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
@@ -37,12 +70,22 @@ def extractinfo(detailsfile):
                     onsourcetime+=rawdelta
                 else:
                     onsourcetime += ((24.-starttime)+(endtime)) # if observation crosses midnight
-                print(starttime, endtime, endtime-starttime)
         except: pass
-    print("Total On-Source Time: {a:0.3f} hrs = {b:0.3f} sec".format(a=onsourcetime, b=onsourcetime*3600))
-       
+
+        # get range of hour angles
+        try:
+            if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])) and ('HAi' not in locals()):
+                startUTC = comp[0]
+                startTime = Time(obsdate+' '+startUTC, scale='utc', location=meerkatloc)
+                HAi = startTime.sidereal_time('apparent').value
+                print(HAi)
+        except: pass
+        
+    #return "Total On-Source Time: {a:0.3f} hrs = {b:0.3f} sec".format(a=onsourcetime, b=onsourcetime*3600)
+    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime  
         
 
 if __name__=='__main__':
     fname = input("Enter filename (e.g., input.txt): ")
-    extractinfo(fname)
+    outstr = extractinfo(fname)
+    print(outstr)
