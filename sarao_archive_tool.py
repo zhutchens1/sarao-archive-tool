@@ -57,6 +57,19 @@ def extractinfo(detailsfile):
             num_ants_used = len(ants)
             missing = [x for x in range(0,64) if x not in ants]
             missing_ants = ''.join(['m'+str(x)+'-' for x in missing])[:-1]
+        # get spectral window info
+        if "Spectral" in line:
+            spectral_info_line = i+2
+        if "spectral_info_line" in locals():
+            if i==spectral_info_line:
+                spwBand = comp[1]
+                spwProduct = comp[2]
+                spwCentreFreqMHz = comp[3]
+                spwBandwidthMHz = comp[4]
+                spwChannels = comp[5]
+                spwChannelWidthkHz = comp[6]
+        #if i==spectral_info_line and ("spectral_info_line" in locals()):
+        #    print(line)
         # get on-source time
         try:
             if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
@@ -98,7 +111,8 @@ def extractinfo(detailsfile):
         except: pass
             
     #return "Total On-Source Time: {a:0.3f} hrs = {b:0.3f} sec".format(a=onsourcetime, b=onsourcetime*3600)
-    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime 
+    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime,spwBand,spwProduct,spwCentreFreqMHz,\
+            spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
         
 
 if __name__=='__main__':
