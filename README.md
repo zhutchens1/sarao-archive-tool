@@ -14,5 +14,11 @@ This tool is designed to produce summary statistics for an observation on the SA
 - Missing Antennas (separated with hypens e.g. `m16- m22- m37`)
 - Total On- Source Time
 - Hour Angle Range
+- Spectral Band
+- SPW Product
+- SPW Center Frequency (MHz)
+- SPW Bandwidth (MHz)
+- SPW Number of Channels
+- SPW Channel Width (kHz)
 
 To run the code, place all the log files (plain text directory) and run the program. It will prompt for the path to this directory. It will then save the summary statistics to a CSV file in that directory.
