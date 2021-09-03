@@ -35,7 +35,6 @@ def extractinfo(detailsfile):
             scheduleBlock = comp[-1]
         if "season" in line:
             season = comp[2]
-
         if "target" in line:
             targetname = comp[1]
             #print(targetname)
@@ -51,7 +50,6 @@ def extractinfo(detailsfile):
         if "target" in line:
             targetRA=comp[3]
             targetDec=comp[4]       
- 
         # get antenna info
         if "ants" in line:
             ants = line[8:-2].split()
@@ -59,7 +57,6 @@ def extractinfo(detailsfile):
             num_ants_used = len(ants)
             missing = [x for x in range(0,64) if x not in ants]
             missing_ants = ''.join(['m'+str(x)+'-' for x in missing])[:-1]
-        
         # get on-source time
         try:
             if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
@@ -79,10 +76,29 @@ def extractinfo(detailsfile):
                 startTime = Time(obsdate+' '+startUTC, scale='utc', location=meerkatloc)
                 HAi = startTime.sidereal_time('apparent').value
                 print(HAi)
+                for revline in reversed(f.readlines()):
+                    rcomp=revline.split()
+                    if (("track" in rcomp[3]) and ("track" in rcomp[4]) and (targetname in rcomp[-1])) and ('HAf' not in locals()):
+                        endUTC = rcomp[2]
+                        endTime = Time(obsdate+' '+endUTC, scale='utc', location=meerkatloc)
+                        HAf = endTime.sidereal_time('apparent').value
+                        if HAf>HAi:
+                            HArange = HAf-HAi
+                        if HAf<HAi:
+                            HArange = (HAf) + (24.-HAi)
+                        print(HAi,HAf,HArange)
+
+
+            #for line in reversed(f.readlines()):
+            #    print('here')
+            #    if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])) and ('HAf' not in locals()):
+            #        endUTC = comp[2]
+            #        print("end UTC", endUTC)
+            #        HAf=0.
         except: pass
-        
+            
     #return "Total On-Source Time: {a:0.3f} hrs = {b:0.3f} sec".format(a=onsourcetime, b=onsourcetime*3600)
-    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime  
+    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime 
         
 
 if __name__=='__main__':
