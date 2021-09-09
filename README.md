@@ -13,7 +13,8 @@ This tool is designed to produce summary statistics for an observation on the SA
 - Number of MeerKAT Antennas Used
 - Missing Antennas (separated with hypens e.g. `m16- m22- m37`)
 - Total On- Source Time
-- Hour Angle Range
+- Initial Source Hour Angle (decimal hours)
+- Final Source Hour Angle (decimal hours)
 - Spectral Band
 - SPW Product
 - SPW Center Frequency (MHz)
