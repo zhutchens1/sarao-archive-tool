@@ -49,7 +49,7 @@ def extractinfo(detailsfile):
         # get target RA/Dec
         if "target" in line:
             targetRA=comp[3]
-            targetDec=comp[4]       
+            targetDec=comp[4]
         # get antenna info
         if "ants" in line:
             ants = line[8:-2].split()
@@ -85,9 +85,11 @@ def extractinfo(detailsfile):
         # get range of hour angles
         try:
             if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])) and ('HAi' not in locals()):
+                targetRAdecimals=time_string_to_decimals(targetRA)
                 startUTC = comp[0]
                 startTime = Time(obsdate+' '+startUTC, scale='utc', location=meerkatloc)
                 HAi = startTime.sidereal_time('apparent').value
+                HAi = HAi - targetRAdecimals
                 print(HAi)
                 for revline in reversed(f.readlines()):
                     rcomp=revline.split()
@@ -95,24 +97,13 @@ def extractinfo(detailsfile):
                         endUTC = rcomp[2]
                         endTime = Time(obsdate+' '+endUTC, scale='utc', location=meerkatloc)
                         HAf = endTime.sidereal_time('apparent').value
-                        if HAf>HAi:
-                            HArange = HAf-HAi
-                        if HAf<HAi:
-                            HArange = (HAf) + (24.-HAi)
-                        print(HAi,HAf,HArange)
-
-
-            #for line in reversed(f.readlines()):
-            #    print('here')
-            #    if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])) and ('HAf' not in locals()):
-            #        endUTC = comp[2]
-            #        print("end UTC", endUTC)
-            #        HAf=0.
+                        HAf = HAf - targetRAdecimals
+                        print(HAf)
         except: pass
             
     #return "Total On-Source Time: {a:0.3f} hrs = {b:0.3f} sec".format(a=onsourcetime, b=onsourcetime*3600)
-    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime,spwBand,spwProduct,spwCentreFreqMHz,\
-            spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
+    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime,HAi,HAf,\
+            spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
         
 
 if __name__=='__main__':
