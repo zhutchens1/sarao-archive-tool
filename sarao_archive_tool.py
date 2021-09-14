@@ -58,7 +58,13 @@ def extractinfo(detailsfile):
         if "Observed from" in line:
             obsdate = comp[2]
         if "Description: " in line:
-            track = comp[-1][:-1]
+            track = str(comp[-1][:-1])
+            if 'commissioning' in line:
+                season='season0'
+            if ('commissioning' in line) and ('spwBand' in locals()):
+                track = spwBand+track
+            if 'repeat' in line:
+                track = comp[-2]+comp[-1][:-1]
         if "Dump rate" in line:
             dumprate_Hz = comp[4]
         if "Size" in line:
