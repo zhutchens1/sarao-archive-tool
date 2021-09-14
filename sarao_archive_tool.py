@@ -7,6 +7,8 @@ March 2021
 """
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
+import os
+import pandas as pd
 
 def time_string_to_decimals(time_string):
     fields = time_string.split(":")
@@ -96,10 +98,34 @@ def extractinfo(detailsfile):
                         HAf = HAf - targetRAdecimals
         except: pass
             
-    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime,HAi,HAf,\
-            spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
+    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
+            missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
+
+def create_table(path_to_logs):
+    """
+    Create a summary table from a directory
+    of LADUMA observing logs.
+
+    Parameters
+    -----------------
+    path_to_logs : str
+        Path to the directory which contains the plain-text format LADUMA logs.
+i       The directory should not contain other files.
+    Returns
+    ----------------
+    """
+    files = os.listdir(path_to_logs)
+    table=[]
+    for f in files:
+        table.append(extractinfo(path_to_logs+f))
+    df = pd.DataFrame(table,columns=['season','track','obsdate','scheduleBlock','captureBlock','targetname','targetRA','targetDec',\
+            'dumprate_Hz','datasize_GB','num_ants_used','missing_ants','onsourcetime','ihourangle','fhourangle','spwBand','spwProduct',\
+            'spwCentreFreqMHz', 'spwBandwidthMHz', 'spwChannels', 'spwChannelWidthkHz'])
+    return df 
+
 
 if __name__=='__main__':
-    fname = input("Enter filename (e.g., input.txt): ")
-    outstr = extractinfo(fname)
-    print(outstr)
+    logpath = input("Enter directory where logs are stored: ")
+    table = create_table(logpath)
+    savename = input("Enter name where summary table should be saved as CSV: ")
+    table.to_csv(savename,index=False)
