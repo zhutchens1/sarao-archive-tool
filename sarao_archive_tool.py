@@ -19,6 +19,22 @@ def time_string_to_decimals(time_string):
 
 
 def extractinfo(detailsfile):
+    """
+    Extract summary information from a plain-text LADUMA
+    observing log.
+
+    Parameters
+    --------------
+    detailsfile : str
+        Path to the observing log, which should be in plain text format.
+    
+    Returns
+    --------------
+    infoarray : iterable
+        Array containing extracted information from the log. The array
+        follows the order and descriptions described in the README at 
+        https://github.com/zhutchens1/sarao-archive-tool/.
+    """
     try:
         f = open(detailsfile, 'r')
     except:
@@ -98,8 +114,9 @@ def extractinfo(detailsfile):
                         HAf = HAf - targetRAdecimals
         except: pass
             
-    return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
-            missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
+    infoarray = [season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
+            missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz]
+    return infoarray 
 
 def create_table(path_to_logs):
     """
@@ -111,8 +128,11 @@ def create_table(path_to_logs):
     path_to_logs : str
         Path to the directory which contains the plain-text format LADUMA logs.
 i       The directory should not contain other files.
-    Returns
+
+    Returns    
     ----------------
+    df : pandas.DataFrame object
+        pandas DataFrame containing summary information from all observing logs.
     """
     files = os.listdir(path_to_logs)
     table=[]
