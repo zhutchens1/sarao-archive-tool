@@ -23,7 +23,7 @@ This tool is designed to produce summary statistics for an observation on the SA
 - SPW Number of Channels
 - SPW Channel Width (kHz)
 
-To run the code, place all the log files (plain text directory) and run the program. It will prompt for the path to this directory. It will then save the summary statistics to a CSV file in that directory.
+To run the code, place all the log files (plain text format) into a common directory and run the program. It will prompt for the path to this directory. It will then save the summary statistics to a CSV file at a location the user specifies.
 
 ### Important Notes
 1. This program assumes that there is only one SPW per observation log. If there is more than one, the SPW summary statistics (e.g. `spwBand`) will reflect only the first of the SPWs. 
