@@ -37,7 +37,6 @@ def extractinfo(detailsfile):
             season = comp[2]
         if "target" in line:
             targetname = comp[1]
-            #print(targetname)
         if "Observed from" in line:
             obsdate = comp[2]
         if "Description: " in line:
@@ -68,8 +67,6 @@ def extractinfo(detailsfile):
                 spwBandwidthMHz = comp[4]
                 spwChannels = comp[5]
                 spwChannelWidthkHz = comp[6]
-        #if i==spectral_info_line and ("spectral_info_line" in locals()):
-        #    print(line)
         # get on-source time
         try:
             if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
@@ -90,7 +87,6 @@ def extractinfo(detailsfile):
                 startTime = Time(obsdate+' '+startUTC, scale='utc', location=meerkatloc)
                 HAi = startTime.sidereal_time('apparent').value
                 HAi = HAi - targetRAdecimals
-                print(HAi)
                 for revline in reversed(f.readlines()):
                     rcomp=revline.split()
                     if (("track" in rcomp[3]) and ("track" in rcomp[4]) and (targetname in rcomp[-1])) and ('HAf' not in locals()):
@@ -98,13 +94,10 @@ def extractinfo(detailsfile):
                         endTime = Time(obsdate+' '+endUTC, scale='utc', location=meerkatloc)
                         HAf = endTime.sidereal_time('apparent').value
                         HAf = HAf - targetRAdecimals
-                        print(HAf)
         except: pass
             
-    #return "Total On-Source Time: {a:0.3f} hrs = {b:0.3f} sec".format(a=onsourcetime, b=onsourcetime*3600)
     return season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,missing_ants,onsourcetime,HAi,HAf,\
             spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz 
-        
 
 if __name__=='__main__':
     fname = input("Enter filename (e.g., input.txt): ")
