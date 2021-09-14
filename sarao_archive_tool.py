@@ -107,13 +107,15 @@ def extractinfo(detailsfile):
                 HAi = HAi - targetRAdecimals
                 for revline in reversed(f.readlines()):
                     rcomp=revline.split()
-                    if (("track" in rcomp[3]) and ("track" in rcomp[4]) and (targetname in rcomp[-1])) and ('HAf' not in locals()):
-                        endUTC = rcomp[2]
+                    if rcomp==[]: continue
+                    #if (("track" in rcomp[3]) and ("track" in rcomp[4]) and (targetname in rcomp[-1])) and ('HAf' not in locals()):
+                    if revline.count("track")==2 and (targetname in rcomp[-1]) and ('HAf' not in locals()):
+                        endUTC = rcomp[2][-8:]
                         endTime = Time(obsdate+' '+endUTC, scale='utc', location=meerkatloc)
                         HAf = endTime.sidereal_time('apparent').value
                         HAf = HAf - targetRAdecimals
         except: pass
-            
+    print("Processing "+detailsfile)        
     infoarray = [season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
             missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz]
     return infoarray 
