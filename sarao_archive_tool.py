@@ -17,6 +17,26 @@ def time_string_to_decimals(time_string):
     seconds = fields[2] if len(fields) > 2 else 0.0
     return float(hours) + (float(minutes) / 60.0) + (float(seconds) / pow(60.0, 2))
 
+def get_on_source_time(targetname, detailsfile):
+    try:
+        f = open(detailsfile, 'r')
+    except:
+        raise IOError("cannot find specified file")
+    onsourcetime=0.0
+    for line in f:
+        comp=line.split()
+        try:
+            if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
+                starttime=time_string_to_decimals(comp[0]) # decimal hrs
+                endtime=time_string_to_decimals(comp[2]) # decimal hrs
+                rawdelta = endtime-starttime
+                if rawdelta>=0.0:
+                    onsourcetime+=rawdelta
+                else:
+                    onsourcetime += ((24.-starttime)+(endtime)) # if observation crosses midnight
+        except:
+            pass
+    return onsourcetime
 
 def extractinfo(detailsfile):
     """
@@ -92,16 +112,17 @@ def extractinfo(detailsfile):
                 spwChannels = comp[5]
                 spwChannelWidthkHz = comp[6]
         # get on-source time
-        try:
-            if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
-                starttime=time_string_to_decimals(comp[0]) # decimal hrs
-                endtime=time_string_to_decimals(comp[2]) # decimal hrs
-                rawdelta = endtime-starttime
-                if rawdelta>=0.0:
-                    onsourcetime+=rawdelta
-                else:
-                    onsourcetime += ((24.-starttime)+(endtime)) # if observation crosses midnight
-        except: pass
+        #try:
+        #    if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
+        #        starttime=time_string_to_decimals(comp[0]) # decimal hrs
+        #        endtime=time_string_to_decimals(comp[2]) # decimal hrs
+        #        rawdelta = endtime-starttime
+        #        print(targetname, rawdelta)
+        #        if rawdelta>=0.0:
+        #            onsourcetime+=rawdelta
+        #        else:
+        #            onsourcetime += ((24.-starttime)+(endtime)) # if observation crosses midnight
+        #except: pass
 
         # get range of hour angles
         try:
@@ -121,12 +142,14 @@ def extractinfo(detailsfile):
                         HAf = endTime.sidereal_time('apparent').value
                         HAf = HAf - targetRAdecimals
         except: pass
+
+    onsourcetime=get_on_source_time(targetname,detailsfile)
     print("Processing "+detailsfile)        
     infoarray = [season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
             missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz]
     return infoarray 
 
-def create_table(path_to_logs):
+def create_table(path_to_logs, print_wiki=False):
     """
     Create a summary table from a directory
     of LADUMA observing logs.
@@ -149,11 +172,25 @@ i       The directory should not contain other files.
     df = pd.DataFrame(table,columns=['season','track','obsdate','scheduleBlock','captureBlock','targetname','targetRA','targetDec',\
             'dumprate_Hz','datasize_GB','num_ants_used','missing_ants','onsourcetime','ihourangle','fhourangle','spwBand','spwProduct',\
             'spwCentreFreqMHz', 'spwBandwidthMHz', 'spwChannels', 'spwChannelWidthkHz'])
+    
+    if print_wiki:
+        for index,row in df.iterrows():
+            wikiline = "|| {a} || {b} || {c} || {d}  || {e:0.2f} || ? || {f:0.2f} || {g} || ".format(\
+                a=row['track'], b=row.obsdate, c=row.scheduleBlock, d=row.captureBlock, e=float(row.datasize_GB)/1000., f=row.onsourcetime,\
+                g=row.num_ants_used)
+            tmp=str(row.missing_ants)
+            tmp=[chc for chc in tmp if chc is not 'm']
+            tmp=[chc if chc!='-' else ',' for chc in tmp]
+            tmp=''.join(tmp)
+            wikiline+=tmp
+            print(wikiline)
+        
+
     return df 
 
 
 if __name__=='__main__':
     logpath = input("Enter directory where logs are stored: ")
-    table = create_table(logpath)
+    table = create_table(logpath, print_wiki=True)
     savename = input("Enter name where summary table should be saved as CSV: ")
     table.to_csv(savename,index=False)
