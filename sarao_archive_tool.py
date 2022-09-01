@@ -76,6 +76,13 @@ def extractinfo(detailsfile):
         if "target" in line:
             targetname = comp[1]
         if "Observed from" in line:
+            starttime = time_string_to_decimals(comp[3])
+            endtime = time_string_to_decimals(comp[7])
+            rawdt = endtime-starttime
+            if rawdt<0:
+                trackhr = (24-starttime)+endtime
+            else:
+                trackhr = rawdt 
             obsdate = comp[2]
         if "Description: " in line:
             track = str(comp[-1][:-1])
@@ -111,18 +118,6 @@ def extractinfo(detailsfile):
                 spwBandwidthMHz = comp[4]
                 spwChannels = comp[5]
                 spwChannelWidthkHz = comp[6]
-        # get on-source time
-        #try:
-        #    if (("track" in comp[3]) and ("track" in comp[4]) and (targetname in comp[-1])):
-        #        starttime=time_string_to_decimals(comp[0]) # decimal hrs
-        #        endtime=time_string_to_decimals(comp[2]) # decimal hrs
-        #        rawdelta = endtime-starttime
-        #        print(targetname, rawdelta)
-        #        if rawdelta>=0.0:
-        #            onsourcetime+=rawdelta
-        #        else:
-        #            onsourcetime += ((24.-starttime)+(endtime)) # if observation crosses midnight
-        #except: pass
 
         # get range of hour angles
         try:
@@ -135,7 +130,6 @@ def extractinfo(detailsfile):
                 for revline in reversed(f.readlines()):
                     rcomp=revline.split()
                     if rcomp==[]: continue
-                    #if (("track" in rcomp[3]) and ("track" in rcomp[4]) and (targetname in rcomp[-1])) and ('HAf' not in locals()):
                     if revline.count("track")==2 and (targetname in rcomp[-1]) and ('HAf' not in locals()):
                         endUTC = rcomp[2][-8:]
                         endTime = Time(obsdate+' '+endUTC, scale='utc', location=meerkatloc)
@@ -145,7 +139,7 @@ def extractinfo(detailsfile):
 
     onsourcetime=get_on_source_time(targetname,detailsfile)
     print("Processing "+detailsfile)        
-    infoarray = [season,track,obsdate,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
+    infoarray = [season,track,obsdate,trackhr,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
             missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz]
     return infoarray 
 
@@ -169,17 +163,17 @@ i       The directory should not contain other files.
     table=[]
     for f in files:
         table.append(extractinfo(path_to_logs+f))
-    df = pd.DataFrame(table,columns=['season','track','obsdate','scheduleBlock','captureBlock','targetname','targetRA','targetDec',\
+    df = pd.DataFrame(table,columns=['season','track','obsdate','trackhr','scheduleBlock','captureBlock','targetname','targetRA','targetDec',\
             'dumprate_Hz','datasize_GB','num_ants_used','missing_ants','onsourcetime','ihourangle','fhourangle','spwBand','spwProduct',\
             'spwCentreFreqMHz', 'spwBandwidthMHz', 'spwChannels', 'spwChannelWidthkHz'])
     
     if print_wiki:
         for index,row in df.iterrows():
-            wikiline = "|| {a} || {b} || {c} || {d}  || {e:0.2f} || ? || {f:0.2f} || {g} || ".format(\
+            wikiline = "|| {a} || {b} || {c} || {d}  || {e:0.2f} || {thr:0.2f} || {f:0.2f} || {g} || ".format(\
                 a=row['track'], b=row.obsdate, c=row.scheduleBlock, d=row.captureBlock, e=float(row.datasize_GB)/1000., f=row.onsourcetime,\
-                g=row.num_ants_used)
+                g=row.num_ants_used, thr=row.trackhr)
             tmp=str(row.missing_ants)
-            tmp=[chc for chc in tmp if chc is not 'm']
+            tmp=[chc for chc in tmp if chc!='m']
             tmp=[chc if chc!='-' else ',' for chc in tmp]
             tmp=''.join(tmp)
             wikiline+=tmp
