@@ -76,7 +76,9 @@ def extractinfo(detailsfile):
         if "target" in line:
             targetname = comp[1]
         if "Observed from" in line:
+            starttime_UTCformat = comp[3]
             starttime = time_string_to_decimals(comp[3])
+            endtime_UTCformat = comp[7]
             endtime = time_string_to_decimals(comp[7])
             rawdt = endtime-starttime
             if rawdt<0:
@@ -140,7 +142,7 @@ def extractinfo(detailsfile):
     onsourcetime=get_on_source_time(targetname,detailsfile)
     print("Processing "+detailsfile)        
     infoarray = [season,track,obsdate,trackhr,scheduleBlock,captureBlock,targetname,targetRA,targetDec,dumprate_Hz,datasize_GB,num_ants_used,\
-            missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz]
+            missing_ants,onsourcetime,HAi,HAf,spwBand,spwProduct,spwCentreFreqMHz,spwBandwidthMHz, spwChannels, spwChannelWidthkHz, starttime_UTCformat, endtime_UTCformat]
     return infoarray 
 
 def create_table(path_to_logs, print_wiki=False):
@@ -160,12 +162,13 @@ i       The directory should not contain other files.
         pandas DataFrame containing summary information from all observing logs.
     """
     files = os.listdir(path_to_logs)
+    files.sort()
     table=[]
     for f in files:
         table.append(extractinfo(path_to_logs+f))
     df = pd.DataFrame(table,columns=['season','track','obsdate','trackhr','scheduleBlock','captureBlock','targetname','targetRA','targetDec',\
             'dumprate_Hz','datasize_GB','num_ants_used','missing_ants','onsourcetime','ihourangle','fhourangle','spwBand','spwProduct',\
-            'spwCentreFreqMHz', 'spwBandwidthMHz', 'spwChannels', 'spwChannelWidthkHz'])
+            'spwCentreFreqMHz', 'spwBandwidthMHz', 'spwChannels', 'spwChannelWidthkHz','starttime_UTC', 'endtime_UTC'])
     
     if print_wiki:
         for index,row in df.iterrows():
@@ -186,5 +189,6 @@ i       The directory should not contain other files.
 if __name__=='__main__':
     logpath = input("Enter directory where logs are stored: ")
     table = create_table(logpath, print_wiki=True)
-    savename = input("Enter name where summary table should be saved as CSV: ")
-    table.to_csv(savename,index=False)
+    table[['season','track','obsdate','starttime_UTC','endtime_UTC']].to_csv("s2_UTCobstimes.csv",index=False)
+    #savename = input("Enter name where summary table should be saved as CSV: ")
+    #table.to_csv(savename,index=False)
