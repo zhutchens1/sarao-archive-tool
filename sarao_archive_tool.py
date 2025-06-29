@@ -68,7 +68,11 @@ def extractinfo(detailsfile):
         # get target name
         if line.startswith("Name"):
             fields=line.split('/')
-            captureBlock = fields[4]
+            try:
+                captureBlock = fields[4]
+            except:
+                fields=line.split(' ')
+                captureBlock = fields[1]
         if "Experiment ID" in line:
             scheduleBlock = comp[-1]
         if "season" in line:
@@ -94,6 +98,10 @@ def extractinfo(detailsfile):
                 track = spwBand+track
             if 'repeat' in line:
                 track = comp[-2]+comp[-1][:-1]
+            if ('hour' in line) or ('hr' in line):
+                track = comp[-4]+comp[-3]+comp[-2]+comp[-1][:-1]
+            if track.startswith('track'):
+                track = track[5:]
         if "Dump rate" in line:
             dumprate_Hz = comp[4]
         if "Size" in line:
@@ -190,5 +198,5 @@ if __name__=='__main__':
     logpath = input("Enter directory where logs are stored: ")
     table = create_table(logpath, print_wiki=True)
     table[['season','track','obsdate','starttime_UTC','endtime_UTC']].to_csv("s2_UTCobstimes.csv",index=False)
-    #savename = input("Enter name where summary table should be saved as CSV: ")
-    #table.to_csv(savename,index=False)
+    savename = input("Enter name where summary table should be saved as CSV: ")
+    table.to_csv(savename,index=False)
